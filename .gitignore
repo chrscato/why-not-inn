@@ -1,0 +1,26 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Generated database (large; rebuild from PUF files)
+db/whynotinn.db
+db/whynotinn.db-shm
+db/whynotinn.db-wal
+db/normalization.db
+db/normalization.db-journal
+db/normalization.db-journal.stale
+db/normalization.db.bak
+
+# Raw PUF files (large; user provides)
+data/puf/*.xlsx
+data/puf/*.zip
+!data/puf/.gitkeep
+
+.claude/
+.codex
+tmp/
+
+.DS_Store
+.idea/
+.vscode/
