@@ -1,12 +1,50 @@
-# Why Not In-Network?
+<p align="center">
+  <img src="frontend/logo.png" alt="Why Not In-Network logo" width="180">
+</p>
 
-> Local-first explorer for the federal IDR Public Use Files. The thesis: things
-> are more expensive than they have to be — show what arbitrators award vs.
-> what insurers offered, sliced by CPT, insurer, state, and specialty.
+<h1 align="center">Why Not In-Network?</h1>
+
+<p align="center">
+  Local-first explorer for the federal IDR Public Use Files.
+</p>
+
+<p align="center">
+  Show what arbitrators awarded versus what insurers offered, sliced by CPT,
+  insurer, state, quarter, and specialty.
+</p>
+
+<p align="center">
+  <a href="#first-time-setup">Setup</a> •
+  <a href="#ingest">Ingest</a> •
+  <a href="#run-the-app">Run</a> •
+  <a href="#endpoints">API</a> •
+  <a href="#data-quality-rules">Data Rules</a>
+</p>
+
+## What This Is
+
+This project turns the CMS federal IDR Public Use Files into a local analytical
+stack: SQLite for storage, FastAPI for read-only access, and a plain JavaScript
+frontend for exploration.
+
+It is built to answer questions like:
+
+- What are arbitrators actually awarding?
+- Which insurers show up most often in disputes?
+- Which CPTs, states, and specialties drive volume?
+- How far above QPA do prevailing offers land?
+
+## Stack
+
+- SQLite for the local analytical store
+- Python scripts for ingest, normalization, and rollups
+- FastAPI for the read-only API
+- Plain HTML, CSS, and JavaScript for the frontend
+- CMS federal IDR PUF files as the raw source data
 
 ## What's in here
 
-```
+```text
 why-not-inn/
 ├── data/puf/                        # raw CMS XLSX/ZIP files (you provide)
 ├── db/
@@ -14,12 +52,17 @@ why-not-inn/
 │   └── whynotinn.db                 # generated
 ├── scripts/
 │   ├── parse_puf.py                 # XLSX/ZIP -> SQLite
-│   └── compute_stats.py             # roll up aggregates into idr_stats
+│   ├── compute_stats.py             # roll up aggregates into idr_stats
+│   ├── enrich_nppes.py              # NPPES enrichment into sidecar DB
+│   └── profile_normalization.py     # profiling + specialty seeding
 ├── api/main.py                      # FastAPI read-only API + static mount
 ├── frontend/                        # plain HTML + Chart.js SPA
 │   ├── index.html
 │   ├── app.js
-│   └── style.css
+│   ├── style.css
+│   └── logo.png
+├── docs/
+│   └── normalization-plan.md
 ├── requirements.txt
 └── README.md
 ```
@@ -50,6 +93,17 @@ python scripts/compute_stats.py                   # refresh idr_stats
 
 Ingest is idempotent (`ingest_log` tracks loaded files; disputes are upserted
 on `(dli_number, quarter)`). Re-run `compute_stats.py` after any new ingest.
+
+### Optional normalization workflow
+
+```bash
+python scripts/enrich_nppes.py --limit 25 --sleep-seconds 0.5
+python scripts/profile_normalization.py --top 25
+python scripts/profile_normalization.py --seed-specialties
+```
+
+This writes normalization artifacts into a sidecar database
+(`db/normalization.db`) rather than the main app database.
 
 ## Run the app
 
